@@ -1,2 +1,5 @@
 # Rock-Paper-Scissors
-Basic game with Python. :)
+
+_Basic game with Python. :)_
+
+![alt Text](Preview.png)
