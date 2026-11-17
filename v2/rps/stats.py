@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 from collections import Counter
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -14,9 +15,12 @@ SCHEMA_VERSION = 1
 
 
 def default_path() -> Path:
-    base = os.environ.get("XDG_DATA_HOME") or (Path.home() / ".local" / "share")
-    if os.name == "nt":
+    if sys.platform == "win32":
         base = os.environ.get("APPDATA") or Path.home()
+    elif sys.platform == "darwin":
+        base = Path.home() / "Library" / "Application Support"
+    else:
+        base = os.environ.get("XDG_DATA_HOME") or (Path.home() / ".local" / "share")
     return Path(base) / "rps-arena" / "stats.json"
 
 

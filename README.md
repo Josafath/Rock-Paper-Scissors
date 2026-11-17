@@ -23,6 +23,8 @@ People are bad at being random. We avoid repeating moves, fall into cycles, or r
 
 The CPU always commits to its move **before** it sees yours. A test checks this.
 
+📐 **[Architecture and algorithms](v2/docs/ARCHITECTURE.md)** has the module diagram, the life of a round, the math behind the predictions with a worked example, and the design decisions.
+
 | CPU | How it decides |
 |---|---|
 | Easy | Pure chance. Nobody can beat it in the long run, and it can't beat you either. |
@@ -37,28 +39,52 @@ The **CPU's mind** panel shows its prediction every round, so you can try to foo
 
 ### Statistics
 
-Every finished match is saved (`~/.local/share/rps-arena/stats.json`, or `%APPDATA%` on Windows). The stats window shows your win rate, streaks, favourite move and how often the CPU reads you.
+Every finished match is saved to `rps-arena/stats.json` inside `%APPDATA%` on Windows, `~/Library/Application Support` on macOS, or `~/.local/share` on Linux. The stats window shows your win rate, streaks, favourite move and how often the CPU reads you.
 
 <img src="v2/docs/stats.png" alt="Statistics window" width="370">
 
-## Run it
+## Install and run
 
-Needs Python 3.10+ and nothing outside the standard library.
+You need **Python 3.10 or newer**. The game only uses the standard library, so there's nothing to download besides Python itself.
+
+**1. Get Python with Tkinter**
+
+| System | What to do |
+|---|---|
+| Windows | Install from [python.org](https://www.python.org/downloads/). Keep **"tcl/tk and IDLE"** ticked (it is by default) and tick **"Add python.exe to PATH"**. |
+| macOS | Install from [python.org](https://www.python.org/downloads/), which includes Tk. If you use Homebrew instead: `brew install python python-tk`. The `python3` that ships with Xcode is too old. |
+| Linux | `sudo apt install python3-tk python3-venv` (Debian/Ubuntu) or your distro's equivalent. |
+
+**2. Install the game** (from the repo folder)
+
+Windows (PowerShell):
+
+```powershell
+cd v2
+py -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+rps
+```
+
+macOS / Linux:
 
 ```bash
 cd v2
-python -m rps
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+rps
 ```
 
-On Debian/Ubuntu, Tkinter is a separate package: `sudo apt install python3-tk`.
+`requirements.txt` installs the game itself and adds the `rps` command. If you'd rather not install anything, run `python -m rps` from inside `v2/`.
 
 Controls: click a card or press `1`–`5`. `N` starts a new match and `S` opens your stats.
 
 ### Tests
 
 ```bash
-cd v2
-pip install pytest
+pip install -r requirements-dev.txt
 pytest
 ```
 
@@ -75,6 +101,7 @@ v2/
     gui.py          Tkinter interface, the only module that touches Tk
     assets/         card art
   tests/            pytest suite (doesn't need Tk)
+  docs/             screenshots and ARCHITECTURE.md
 ```
 
 ## About v1

@@ -1,0 +1,4 @@
+# The game only uses the Python standard library (Tkinter included).
+# Installing this file installs the game itself and adds the `rps` command.
+# Run it from the v2/ folder:  pip install -r requirements.txt
+-e .
