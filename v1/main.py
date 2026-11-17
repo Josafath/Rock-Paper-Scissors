@@ -8,6 +8,7 @@ from tkinter import messagebox
 from tkinter import *
 import random
 import sys
+import os
 root = Tk()
 #Global counter for the game
 root.user_wins = 0
@@ -98,14 +99,14 @@ root.title("Los geth's!")
 wins_person = StringVar()
 wins_cpu = StringVar()
 r = StringVar()
-Piedra = PhotoImage(file=sys.path[0]+"\Images\Rock.png")
-Papel = PhotoImage(file=sys.path[0]+"\Images\Paper.png")
-Tijeras = PhotoImage(file=sys.path[0]+"\Images\Scissors.png")
-boton1 = Button(root,text="paper",image = Piedra,command=papel)
+Piedra = PhotoImage(file=os.path.join(sys.path[0], "Images", "Rock.png"))
+Papel = PhotoImage(file=os.path.join(sys.path[0], "Images", "Paper.png"))
+Tijeras = PhotoImage(file=os.path.join(sys.path[0], "Images", "Scissors.png"))
+boton1 = Button(root,text="rock",image = Piedra,command=piedra)
 boton1.grid(padx = 15,pady = 5,row =1 ,column=1)
-boton2 = Button(root,text="cissors",image = Papel,command=tijeras)
+boton2 = Button(root,text="paper",image = Papel,command=papel)
 boton2.grid(padx = 15,pady = 5,row =1 ,column=2)
-boton3 = Button(root,text="rock",image = Tijeras,command=piedra)
+boton3 = Button(root,text="scissors",image = Tijeras,command=tijeras)
 boton3.grid(padx = 15, pady =5,row =1 ,column=3)
 
 Label(root,textvariable= r,

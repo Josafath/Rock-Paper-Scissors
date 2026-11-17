@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rps-learning-cpu"
+version = "2.0.0"
+description = "Rock Paper Scissors (and Lizard-Spock) against a CPU that learns your patterns."
+requires-python = ">=3.10"
+dependencies = []  # standard library only (Tkinter)
+
+[project.optional-dependencies]
+dev = ["pytest>=7"]
+
+[project.scripts]
+rps = "rps.__main__:main"
+
+[tool.setuptools]
+packages = ["rps"]
+
+[tool.setuptools.package-data]
+rps = ["assets/*.png", "assets/thumbs/*.png"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
