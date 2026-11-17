@@ -11,10 +11,12 @@ from typing import Any, Optional
 
 from .game import Match
 
+# Stored inside the file so a future version can recognise old formats.
 SCHEMA_VERSION = 1
 
 
 def default_path() -> Path:
+    """Where the history file lives, following each OS's conventions."""
     if sys.platform == "win32":
         base = os.environ.get("APPDATA") or Path.home()
     elif sys.platform == "darwin":
@@ -25,6 +27,7 @@ def default_path() -> Path:
 
 
 def match_to_record(match: Match) -> dict[str, Any]:
+    """Convert a finished match into plain data that JSON can store."""
     return {
         "date": match.started_at.isoformat(timespec="seconds"),
         "ruleset": match.rules.name,
@@ -41,6 +44,8 @@ def match_to_record(match: Match) -> dict[str, Any]:
 
 
 class StatsStore:
+    """Loads, appends to and saves the list of finished matches."""
+
     def __init__(self, path: Optional[Path] = None) -> None:
         self.path = Path(path) if path else default_path()
         self.matches: list[dict[str, Any]] = self._load()
@@ -51,28 +56,32 @@ class StatsStore:
             if data.get("version") == SCHEMA_VERSION:
                 return list(data["matches"])
         except FileNotFoundError:
-            return []
+            return []  # first time playing: nothing saved yet
         except (ValueError, KeyError, TypeError, AttributeError):
-            pass
+            pass  # invalid JSON or unexpected structure: handled below
         # Unreadable or unknown format: keep a copy instead of silently losing it
         self.path.replace(self.path.with_suffix(".corrupt.json"))
         return []
 
     def record(self, match: Match) -> None:
+        """Add a finished match to the history and save it right away."""
         if not match.is_over:
             raise ValueError("Only finished matches are recorded")
         self.matches.append(match_to_record(match))
         self.save()
 
     def reset(self) -> None:
+        """Delete the whole history (used by the "Reset stats" button)."""
         self.matches = []
         self.save()
 
     def save(self) -> None:
         self.path.parent.mkdir(parents=True, exist_ok=True)
+        # Write everything to a temporary file first...
         tmp = self.path.with_suffix(".tmp")
         payload = {"version": SCHEMA_VERSION, "matches": self.matches}
         tmp.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        # ...then swap it in with a single rename.
         tmp.replace(self.path)  # atomic: never leaves a half-written file
 
     def summary(self) -> "Summary":
@@ -81,15 +90,20 @@ class StatsStore:
 
 @dataclass
 class Summary:
+    """Statistics calculated from the saved history (see `summarize`)."""
+
     matches: int = 0
     wins: int = 0
     rounds: Counter = field(default_factory=Counter)  # outcome -> count
     moves: Counter = field(default_factory=Counter)  # player move -> count
     best_streak: int = 0
     current_streak: int = 0  # >0 winning streak, <0 losing streak
-    reads: int = 0
-    predictions: int = 0
+    reads: int = 0  # rounds where the CPU guessed your move
+    predictions: int = 0  # rounds where the CPU made a guess at all
     by_difficulty: dict[str, tuple[int, int]] = field(default_factory=dict)  # name -> (wins, played)
+
+    # The rates return None instead of dividing by zero when there's no data;
+    # the GUI shows None as "—".
 
     @property
     def win_rate(self) -> Optional[float]:
@@ -105,14 +119,18 @@ class Summary:
 
 
 def summarize(matches: list[dict[str, Any]]) -> Summary:
+    """Go through the history once, oldest match first, and add everything up."""
     s = Summary()
+    # One counter for streaks: +3 means "won the last 3", -2 "lost the last 2".
     streak = 0
     for m in matches:
         won = m["result"] == "win"
         s.matches += 1
-        s.wins += won
+        s.wins += won  # bool counts as 1 or 0
         w, p = s.by_difficulty.get(m["difficulty"], (0, 0))
         s.by_difficulty[m["difficulty"]] = (w + won, p + 1)
+        # A win extends a winning streak or starts a new one at +1;
+        # a loss does the same in the negative direction.
         if won:
             streak = streak + 1 if streak > 0 else 1
         else:
@@ -124,5 +142,6 @@ def summarize(matches: list[dict[str, Any]]) -> Summary:
             if r.get("predicted"):
                 s.predictions += 1
                 s.reads += r["predicted"] == r["player"]
+    # Whatever the counter holds after the newest match is the current streak.
     s.current_streak = streak
     return s
